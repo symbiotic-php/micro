@@ -1,0 +1,46 @@
+{
+  "name": "symbiotic/micro",
+  "description": "SymbioticPHP framework for mini applications, supports plugins and inheritance of containers of parent applications.",
+  "homepage": "https://symbioticphp.com",
+  "authors": [
+    {
+      "name": "Sergei Surkov",
+      "role": "Developer"
+    }
+  ],
+  "version": "1.4.0",
+  "type": "library",
+  "keywords": [
+    "SymbioticPHP",
+    "Symbiotic framework",
+    "micro framework"
+  ],
+  "require": {
+    "php": "^8.0",
+    "ext-mbstring":"*",
+    "ext-json":"*",
+    "psr/container": "^1.0|^2.0",
+    "psr/http-server-handler": "^1.0",
+    "psr/http-server-middleware": "^1.0",
+    "psr/simple-cache": "^1.0",
+    "nyholm/psr7": "1.5.1",
+    "symbiotic/http-response-mutable": "^1.4",
+    "symbiotic/http-cookie": "^1.4",
+    "symbiotic/packages-loader-filesytem": "^1.4",
+    "symbiotic/event": "^1.0",
+    "symbiotic/ui_http_kernel": "1.*"
+  },
+
+  "require-dev": {
+    "symbiotic/tests-micro": "1.4.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Symbiotic\\": "src/"
+    },
+    "files": ["src/helpers.php"]
+  },
+  "suggest": {
+    "symbiotic/full": "Extended version of the framework"
+  }
+}
