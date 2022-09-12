@@ -27,7 +27,7 @@
     "symbiotic/http-response-mutable": "^1.4",
     "symbiotic/http-cookie": "^1.4",
     "symbiotic/packages-loader-filesytem": "^1.4",
-    "symbiotic/event": "^1.0",
+    "symbiotic/event": "^1.4",
     "symbiotic/ui_http_kernel": "1.*"
   },
 
