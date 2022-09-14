@@ -1,6 +1,6 @@
 <?php
 
-$basePath = dirname(__DIR__, 3);
+$basePath = dirname(__DIR__, 4);
 
 return [
     'debug' => false,

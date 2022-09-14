@@ -8,7 +8,7 @@
       "role": "Developer"
     }
   ],
-  "version": "1.4.0.2",
+  "version": "1.4.0.3",
   "type": "library",
   "keywords": [
     "SymbioticPHP",
@@ -28,7 +28,7 @@
     "symbiotic/http-cookie": "^1.4",
     "symbiotic/packages-loader-filesytem": "^1.4",
     "symbiotic/event": "^1.4",
-    "symbiotic/ui_http_kernel": "1.*"
+    "symbiotic/ui_http_kernel": "1.4.*"
   },
 
   "require-dev": {
