@@ -30,8 +30,8 @@ class SessionStorageNative implements SessionStorageInterface
 
 
     public function __construct(
-        protected ?string $namespace,
-        protected bool $symbiosis
+        protected bool $symbiosis,
+        protected ?string $namespace
     ) {
     }
 

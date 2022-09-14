@@ -27,10 +27,10 @@ interface HttpKernelInterface extends RequestHandlerInterface, CloningContainer
 
     /**
      * @param ServerRequestInterface $request
-     * @param ?ResponseInterface     $response null if is not handled request {@see HttpRunner::run()}
+     * @param ResponseInterface|null    $response null if is not handled request {@see HttpRunner::run()}
      *
      * @return void
      * @uses \Symbiotic\Http\Kernel\HttpKernelTerminate
      */
-    public function terminate(ServerRequestInterface $request, ?ResponseInterface $response): void;
+    public function terminate(ServerRequestInterface $request, ResponseInterface $response = null): void;
 }

@@ -22,11 +22,11 @@ class SessionManager implements SessionManagerInterface
     public function __construct(protected ContainerInterface $container)
     {
         $this->config = $container->get('config::session', []);
-        if(!isset($this->config['name'])) {
+        if (!isset($this->config['name'])) {
             $this->config['name'] = session_name();
         }
-        if(!isset($this->config['minutes'])) {
-            $this->config['minutes'] = 60*24;
+        if (!isset($this->config['minutes'])) {
+            $this->config['minutes'] = 60 * 24;
         }
         $this->drivers = [
             'native' => [$this, 'createNativeDriver']
@@ -47,7 +47,7 @@ class SessionManager implements SessionManagerInterface
     }
 
     /**
-     * @param string $name
+     * @param string   $name
      * @param callable $builder
      *
      * @return void
@@ -62,12 +62,12 @@ class SessionManager implements SessionManagerInterface
      *
      * @return SessionStorageInterface
      */
-    protected function createNativeDriver(): SessionStorageInterface
+    public function createNativeDriver(array $config, ContainerInterface $container): SessionStorageInterface
     {
-        $symbiosis = (bool) $this->container->get('config')->get('symbiosis');
+        $symbiosis = (bool)$container->get('config')->get('symbiosis');
         return new SessionStorageNative(
-            $this->config['namespace'] ?? ($symbiosis ? '5a8309dedb810d2322b6024d536832ba' : null),
-            $symbiosis
+            $symbiosis,
+            $config['namespace'] ?? null,
         );
     }
 

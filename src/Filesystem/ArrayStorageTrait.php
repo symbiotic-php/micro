@@ -33,7 +33,7 @@ trait ArrayStorageTrait
      * @param bool $force
      *
      * @return array
-     * @throws \Exception
+     * @throws FilesystemException|\TypeError
      */
     public function remember(string $name, callable $callback, bool $force = false): array
     {
@@ -56,12 +56,18 @@ trait ArrayStorageTrait
         return $data;
     }
 
+    /**
+     * @param string $name
+     *
+     * @return array
+     * @throws \TypeError
+     */
     public function get(string $name): array
     {
         if ($this->has($name)) {
             $data = include $this->getFilePath($name);
             if (!is_array($data)) {
-                throw new FilesystemException('Data is not array [' . $name . ']!');
+                throw new \TypeError('Data is not array [' . $name . ']!');
             }
 
             return $data;

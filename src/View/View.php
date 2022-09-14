@@ -9,6 +9,8 @@ use Symbiotic\Apps\AppsRepositoryInterface;
 use Symbiotic\Core\CoreInterface;
 use Symbiotic\Core\Support\RenderableInterface;
 use Symbiotic\Core\Support\Str;
+use Symbiotic\Core\SymbioticException;
+use Symbiotic\Packages\ResourceExceptionInterface;
 use Symbiotic\Packages\TemplatesRepositoryInterface;
 use Symbiotic\Routing\RouteNotFoundException;
 use Symbiotic\Routing\UrlGeneratorInterface;
@@ -272,13 +274,13 @@ class View implements RenderableInterface
     }
 
     /**
-     * @param null $content
+     * @param string|\Closure|RenderableInterface|null $content
      *
      * @return string
      *
-     * @throws \Exception
+     * @throws ResourceExceptionInterface|SymbioticException
      */
-    public function fetch($content = null):string
+    public function fetch(string|\Closure|RenderableInterface $content = null): string
     {
         if (null === $content) {
             $content = $this;

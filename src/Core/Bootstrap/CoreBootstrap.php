@@ -9,7 +9,6 @@ use Symbiotic\Core\BootstrapInterface;
 use Symbiotic\Core\Config;
 use Symbiotic\Core\CoreInterface;
 use Symbiotic\Core\Events\CacheClear;
-use Symbiotic\View\View;
 use Symbiotic\View\ViewFactory;
 use Symbiotic\Packages\TemplatesRepositoryInterface;
 
@@ -29,6 +28,11 @@ class CoreBootstrap implements BootstrapInterface
             'config'
         );
 
+        /**
+         * @var Config $config
+         */
+        $config = $core->get('config');
+
         $core->singleton(ViewFactory::class, static function ($app) {
             return new ViewFactory($app, $app[TemplatesRepositoryInterface::class]);
         },               'view');
@@ -41,12 +45,12 @@ class CoreBootstrap implements BootstrapInterface
             $core['env'] = 'web';
         }
 
-        \date_default_timezone_set($core('config::core.timezone', 'UTC'));
+        \date_default_timezone_set($config->get('core.timezone', 'UTC'));
         \mb_internal_encoding('UTF-8');
 
 
-        $storage_path = $core('config::storage_path');
-        $cache_path = $core('config::cache_path');
+        $storage_path = $config->get('storage_path');
+        $cache_path = $config->get('cache_path');
 
         if ($storage_path) {
             $core['storage_path'] = $storage_path = \rtrim($storage_path, '\\/');
@@ -60,7 +64,7 @@ class CoreBootstrap implements BootstrapInterface
             $core['cache_path_core'] = rtrim($cache_path, '\\/') . '/core';
         }
 
-        $start_bootstrappers = $core->get('config::bootstrappers');
+        $start_bootstrappers = $config->get('bootstrappers');
         if (\is_array($start_bootstrappers)) {
             foreach ($start_bootstrappers as $class) {
                 $core->runBootstrap($class);

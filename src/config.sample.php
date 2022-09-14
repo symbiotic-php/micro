@@ -14,6 +14,9 @@ return [
     // The prefix in which the framework works, if empty, it works from the root
     'uri_prefix' => 'symbiotic',
 
+    // Admin prefix, full admin uri = uri_prefix/backend_prefix
+    'backend_prefix' => 'admin',
+
     // Root folder of the project
     'base_path' => $basePath,
     // URL prefix for static file addresses

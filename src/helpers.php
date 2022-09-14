@@ -13,6 +13,7 @@ use Symbiotic\Core\Config;
 use Symbiotic\Core\Support\Arr;
 use Symbiotic\Core\Support\Collection;
 use Symbiotic\Core\Support\Str;
+use Symbiotic\Event\ListenersInterface;
 use Symbiotic\Routing\UrlGeneratorInterface;
 use Symbiotic\View\View;
 use Symbiotic\Core\HttpKernelInterface;
@@ -105,11 +106,9 @@ if (!function_exists('_S\\redirect')) {
      */
     function redirect(ContainerInterface $app, string $uri, int $code = 301): ResponseInterface
     {
-        $response = $app->get(ResponseFactoryInterface::class)->createResponse($code);
-        return $response
-            ->withHeader('Location', $uri)
-            ->withHeader('Cache-Control', 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0')
-            ->withHeader('Expires', 'Sat, 26 Jul 1997 05:00:00 GMT');
+        return $app->get(ResponseFactoryInterface::class)
+            ->createResponse($code)
+            ->withHeader('Location', $uri);
     }
 }
 
@@ -166,7 +165,7 @@ if (!function_exists('_S\\listen')) {
      */
     function listen(ContainerInterface $app, string $event, \Closure|string $handler): void
     {
-        $app->get('listeners')->add($event, $handler);
+        $app->get(ListenersInterface::class)->add($event, $handler);
     }
 }
 
@@ -215,9 +214,9 @@ if (!function_exists('_S\\view')) {
      * Make View
      *
      * @param ContainerInterface $app
-     * @param string $path
-     * @param array  $vars
-     * @param null   $app_id
+     * @param string             $path
+     * @param array              $vars
+     * @param null               $app_id
      *
      * @return View
      * @throws
@@ -230,15 +229,15 @@ if (!function_exists('_S\\view')) {
 
 if (!function_exists('_S\\asset')) {
     /**
-     * @param string $path
+     * @param string $path app_id::relative_path/file.ext or full_path/file.ext
      * @param bool   $absolute
      *
-     * @return string Uri файла приложения
+     * @return string Public file uri
      */
-     function asset(ContainerInterface $app, string $path = '', bool $absolute = true)
-     {
-         return $app->get(UrlGeneratorInterface::class)->asset($path, $absolute);
-     }
+    function asset(ContainerInterface $app, string $path = '', bool $absolute = true)
+    {
+        return $app->get(UrlGeneratorInterface::class)->asset($path, $absolute);
+    }
 }
 
 if (!function_exists('_S\\camel_case')) {
@@ -251,7 +250,7 @@ if (!function_exists('_S\\camel_case')) {
      *
      * @deprecated Str::camel() should be used directly instead. Will be removed in Laravel 5.9.
      */
-    function camel_case($value)
+    function camel_case(string $value): string
     {
         return Str::camel($value);
     }
@@ -265,7 +264,7 @@ if (!function_exists('_S\\class_basename')) {
      *
      * @return string
      */
-    function class_basename($class)
+    function class_basename(object|string $class): string
     {
         $class = is_object($class) ? get_class($class) : $class;
 
@@ -281,7 +280,7 @@ if (!function_exists('_S\\collect')) {
      *
      * @return Collection
      */
-    function collect($value = null)
+    function collect(mixed $value = null): Collection
     {
         return new Collection($value);
     }
