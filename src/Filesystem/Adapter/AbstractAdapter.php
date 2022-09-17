@@ -14,7 +14,7 @@ abstract class AbstractAdapter implements AdapterInterface, PathPrefixInterface
 
     public function applyPathPrefix(string $path): string
     {
-        return $this->getPathPrefix() . $path;
+        return empty($this->path_prefix) ? $path : $this->getPathPrefix() . ltrim($path, '\\/');
     }
 
     public function getPathPrefix(): string

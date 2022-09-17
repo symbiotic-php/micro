@@ -47,7 +47,7 @@ class Local extends AbstractAdapter implements FilesystemInterface
         $this->permissionMap = array_replace_recursive(static::permissions, $permissions);
 
         if (!empty($root) && (!is_dir($root) || !is_readable($root))) {
-            throw new \LogicException('The root path ' . $root . ' is not readable.');
+           $this->ensureDirectory($root);
         }
 
         $this->setPathPrefix($root);
@@ -94,7 +94,8 @@ class Local extends AbstractAdapter implements FilesystemInterface
      */
     public function createDir(string $dirname, array $options = []): bool
     {
-        $return = $dirname = $this->applyPathPrefix($dirname);
+
+         $dirname = $this->applyPathPrefix($dirname);
 
         if (!is_dir($dirname)) {
             if (false === @mkdir(
@@ -103,10 +104,10 @@ class Local extends AbstractAdapter implements FilesystemInterface
                     true
                 )
                 || false === is_dir($dirname)) {
-                $return = false;
+              return false;
             }
         }
-        return $return;
+        return true;
     }
 
     /**

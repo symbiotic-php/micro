@@ -36,6 +36,7 @@ class Filesystem implements FilesystemInterface
 
     public static function normalizePath(string $path): string
     {
+
         $path = rtrim(str_replace("\\", "/", trim($path)), '/');
         $unx = (strlen($path) > 0 && $path[0] == '/');
         $parts = array_filter(explode('/', $path));
@@ -51,6 +52,7 @@ class Filesystem implements FilesystemInterface
             }
         }
         $path = implode('/', $absolutes);
+
         return $unx ? '/' . $path : $path;
     }
 
