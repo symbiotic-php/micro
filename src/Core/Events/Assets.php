@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Symbiotic\Core\Events;
 
-abstract class Assets /* extends CachedEvent*/
+/*abstract class Assets  extends CachedEventimplements \Stringable **/
+
+abstract class Assets implements \Stringable
 {
 
     const LINK_PRELOAD = 'preload';
@@ -24,6 +26,8 @@ abstract class Assets /* extends CachedEvent*/
 
     protected array $links = [];
 
+    protected array $html = [];
+
 
     /**
      * @param string      $content uri or content (with inline flag)
@@ -31,7 +35,7 @@ abstract class Assets /* extends CachedEvent*/
      * @param string      $type    - js template, vbscript...
      * @param string|null $flag    see ASSET_... constants
      */
-    public function addJs(string $content, bool $inline = false, $type = 'text/javascript', string $flag = null)
+    public function addJs(string $content, bool $inline = false, $type = 'text/javascript', string $flag = null): void
     {
         $this->js[] = ['content' => $content, 'inline' => $inline, 'type' => $type, 'flag' => $flag];
     }
@@ -41,7 +45,7 @@ abstract class Assets /* extends CachedEvent*/
      * @param false  $inline
      * @param false  $preload
      */
-    public function addCss(string $content, bool $inline = false, bool $preload = false)
+    public function addCss(string $content, bool $inline = false, bool $preload = false): void
     {
         $this->css[] = ['content' => $content, 'inline' => $inline];
         if ($preload) {
@@ -55,21 +59,31 @@ abstract class Assets /* extends CachedEvent*/
      * @param string $as for preload see types
      *                   https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types/preload#what_types_of_content_can_be_preloaded
      */
-    public function addLink(string $uri, $type = self::LINK_PRELOAD, string $as = '')
+    public function addLink(string $uri, $type = self::LINK_PRELOAD, string $as = ''): void
     {
         $this->links[] = ['uri' => $uri, 'type' => $type, 'as' => $as];
     }
 
-    public function getData()
+    public function addHtml(string $content): void
+    {
+        $this->html[] = $content;
+    }
+
+    /**
+     * For json_response
+     * @return array
+     */
+    public function getData(): array
     {
         return [
             'links' => $this->links,
             'css' => $this->css,
             'js' => $this->js,
+            'html' => $this->html
         ];
     }
 
-    public function getHtml()
+    public function getHtml(): string
     {
         $result = '';
         foreach ($this->links as $v) {
@@ -89,7 +103,13 @@ abstract class Assets /* extends CachedEvent*/
                 : '<script type="' . $v['type'] . '">' . $content . '</script>';
         }
 
+        $result .= implode(PHP_EOL, $this->html);
+
         return $result;
     }
 
+    public function __toString(): string
+    {
+        return $this->getHtml();
+    }
 }

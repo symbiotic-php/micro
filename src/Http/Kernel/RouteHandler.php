@@ -52,12 +52,11 @@ class RouteHandler implements RequestHandlerInterface
          * @var callable|string|null               $handler
          */
         $route = $this->route;
-        $apps = $app[AppsRepositoryInterface::class];
+        $apps = $app(AppsRepositoryInterface::class);
         $action = $route->getAction();
 
-        $container = (isset($action['app']) && ($apps instanceof AppsRepositoryInterface)) ? $apps->getBootedApp(
-            $action['app']
-        ) : $this->core;
+        $container = (isset($action['app']) && ($apps instanceof AppsRepositoryInterface))
+            ? $apps->getBootedApp($action['app']) : $this->core;
 
         $handler = $route->getHandler();
         if (!is_string($handler) && !is_callable($handler)) {

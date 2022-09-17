@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Symbiotic\Filesystem\Adapter;
 
-
 use Symbiotic\Filesystem\ExistsException;
 use Symbiotic\Filesystem\FilesystemException;
 use Symbiotic\Filesystem\FilesystemInterface;
 use Symbiotic\Filesystem\NotExistsException;
+
 
 class Local extends AbstractAdapter implements FilesystemInterface
 {
@@ -37,16 +37,14 @@ class Local extends AbstractAdapter implements FilesystemInterface
      *
      * @param string $root
      * @param int    $writeFlags
-     * @param int    $linkHandling
      * @param array  $permissions
      *
      * @throws \LogicException
      */
-    public function __construct($root = '', $writeFlags = LOCK_EX, array $permissions = [])
+    public function __construct(string $root = '', int $writeFlags = LOCK_EX, array $permissions = [])
     {
         $root = is_link($root) ? realpath($root) : $root;
         $this->permissionMap = array_replace_recursive(static::permissions, $permissions);
-        //  $this->ensureDirectory($root);
 
         if (!empty($root) && (!is_dir($root) || !is_readable($root))) {
             throw new \LogicException('The root path ' . $root . ' is not readable.');
@@ -69,9 +67,12 @@ class Local extends AbstractAdapter implements FilesystemInterface
      *
      * @return array|false
      */
-    public function listDir(string $path)
+    public function listDir(string $path): array|false
     {
         $path = $this->applyPathPrefix($this->normalizePath($path));
+        if (!is_dir($path)) {
+            return false;
+        }
         $files = [];
         if (!\function_exists("scandir")) {
             $h = \opendir($path);
@@ -91,7 +92,7 @@ class Local extends AbstractAdapter implements FilesystemInterface
      *
      * @return bool
      */
-    public function createDir(string $dirname, array $options = []):bool
+    public function createDir(string $dirname, array $options = []): bool
     {
         $return = $dirname = $this->applyPathPrefix($dirname);
 
@@ -110,11 +111,11 @@ class Local extends AbstractAdapter implements FilesystemInterface
 
     /**
      * @param string $path
-     * @param string $time
+     * @param int    $time
      *
      * @return bool
      */
-    public function touch(string $path, int $time)
+    public function touch(string $path, int $time): bool
     {
         return \touch($this->applyPathPrefix($path), $time, $time);
     }
@@ -127,7 +128,7 @@ class Local extends AbstractAdapter implements FilesystemInterface
      * @throws FilesystemException
      * @throws NotExistsException
      */
-    public function copy(string $path, string $to):bool
+    public function copy(string $path, string $to): bool
     {
         if (!$this->has($path)) {
             throw new NotExistsException($path . ' File not Found');
@@ -164,7 +165,7 @@ class Local extends AbstractAdapter implements FilesystemInterface
     /**
      * @inheritdoc
      */
-    public function has($path): bool
+    public function has(string $path): bool
     {
         return \file_exists($this->applyPathPrefix($path));
     }
@@ -188,20 +189,29 @@ class Local extends AbstractAdapter implements FilesystemInterface
             $this->clearstatcache($dirname);
             if (!\is_dir($dirname)) {
                 $errorMessage = $error['message'] ?? '';
-                throw new FilesystemException(\sprintf('Impossible to create the directory "%s". %s', $dirname, $errorMessage));
+                throw new FilesystemException(
+                    \sprintf('Impossible to create the directory "%s". %s', $dirname, $errorMessage)
+                );
             }
         }
     }
 
-    protected function clearstatcache($path, $flag = false)
+    protected function clearstatcache(string $path, bool $flag = false):void
     {
         \clearstatcache($flag, $this->applyPathPrefix($path));
     }
 
-    protected function copyThrow(string $path, string $newpath)
+    /**
+     * @param string $path
+     * @param string $newPath
+     *
+     * @return bool
+     * @throws FilesystemException
+     */
+    protected function copyThrow(string $path, string $newPath): bool
     {
-        if ($result = \copy($this->applyPathPrefix($path), $this->applyPathPrefix($newpath))) {
-            return $result;
+        if (\copy($this->applyPathPrefix($path), $this->applyPathPrefix($newPath))) {
+            return true;
         }
         throw new FilesystemException('File not copied : ' . $path);
     }
@@ -226,49 +236,52 @@ class Local extends AbstractAdapter implements FilesystemInterface
      *
      * @return bool
      */
-    public function delete(string $path):bool
+    public function delete(string $path): bool
     {
-        $path = $this->applyPathPrefix($path);
-        if (is_dir($path)) {
-            return $this->deleteDir($this->removePathPrefix($path));
+        $fullPath = $this->applyPathPrefix($path);
+        if (is_dir($fullPath)) {
+            return $this->deleteDir($path);
         }
 
-        return \unlink($path);
+        return \unlink($fullPath);
     }
 
-    public function deleteDir(string $path):bool
+    public function deleteDir(string $path): bool
     {
         $path = $this->applyPathPrefix($path);
-        if (!is_dir($path)) {
+        if (!\is_dir($path)) {
             return false;
         }
         /** @var \SplFileInfo $file */
         foreach ($this->getRecursiveDirectoryIterator($path, \RecursiveIteratorIterator::CHILD_FIRST) as $file) {
-            $this->deleteFileInfoObject($file);
+            if (!$this->deleteFileInfoObject($file)) {
+                return false;
+            }
         }
 
-        return rmdir($path);
+        return \rmdir($path);
     }
 
     /**
      * @param \SplFileInfo $file
+     *
+     * @return bool
      */
-    protected function deleteFileInfoObject(\SplFileInfo $file)
+    protected function deleteFileInfoObject(\SplFileInfo $file): bool
     {
         switch ($file->getType()) {
             case 'dir':
-                return rmdir($file->getRealPath());
-                break;
+                return \rmdir($file->getRealPath());
             case 'link':
-                return unlink($file->getPathname());
-                break;
+                return \unlink($file->getPathname());
             default:
-                return unlink($file->getRealPath());
+                return \unlink($file->getRealPath());
         }
     }
 
     /**
-     * @param $path
+     * @param string   $path
+     * @param int|null $flock
      *
      * @return bool|string
      */
@@ -308,12 +321,12 @@ class Local extends AbstractAdapter implements FilesystemInterface
         $path = $this->applyPathPrefix($path);
         $time = $this->has($path) ? filemtime($path) : time();
 
-        $result = file_put_contents($path, $contents, $options['flags'] ?? $this->writeFlags);
-        if ($result && !empty($options['no_touch'])) {
-            @touch($path, $time, $time);
+        $result = \file_put_contents($path, $contents, $options['flags'] ?? $this->writeFlags);
+        if (\is_int($result) && !empty($options['no_touch'])) {
+            @\touch($path, $time, $time);
         }
 
-        return is_int($result);
+        return \is_int($result);
     }
 
     /**
@@ -324,7 +337,7 @@ class Local extends AbstractAdapter implements FilesystemInterface
      *
      * @throws \Exception
      */
-    public function rename(string $path, string $newPath):bool
+    public function rename(string $path, string $newPath): bool
     {
         $path = $this->applyPathPrefix($path);
         $newPath = $this->applyPathPrefix($newPath);
@@ -339,38 +352,43 @@ class Local extends AbstractAdapter implements FilesystemInterface
         return rename($path, $newPath);
     }
 
-
-    public function listContents($directory = '', $recursive = false)
+    /**
+     * @param string $directory
+     * @param bool   $recursive
+     *
+     * @return array|false
+     */
+    public function listContents(string $directory = '', bool $recursive = false): array|false
     {
         // TODO: Implement listContents() method.
     }
 
-    public function getMetadata($path)
+    public function getMetadata(string $path): array|false
     {
         // TODO: Implement getMetadata() method.
     }
 
-    public function getSize($path)
+    public function getSize(string $path): int|false
     {
         // TODO: Implement getSize() method.
     }
 
-    public function getMimetype($path)
+    public function getMimetype(string $path): string|false
     {
         // TODO: Implement getMimetype() method.
     }
 
-    public function getTimestamp($path)
+    public function getTimestamp(string $path): int|false
     {
         // TODO: Implement getTimestamp() method.
     }
 
-    public function setVisibility($path, $visibility):bool
+    public function setVisibility(string $path, string $visibility): bool
     {
         // TODO: Implement setVisibility() method.
     }
 
-    public function getVisibility($path):string|false
+    public function getVisibility(string $path): string|false
     {
         // TODO: Implement getVisibility() method.
     }
@@ -393,19 +411,18 @@ class Local extends AbstractAdapter implements FilesystemInterface
      *
      * @return string
      */
-    public function getContent(string $path, int $flock = null): string
+    public function getContent(string $path): string
     {
+        $fullPath = $this->applyPathPrefix($path);
         $contents = '';
 
-        $handle = fopen($path, 'rb');
+        $handle = fopen($fullPath, 'rb');
 
         if ($handle) {
             try {
                 if (flock($handle, LOCK_SH)) {
-                    clearstatcache(true, $path);
-
-                    $contents = fread($handle, $this->size($path) ?: 1);
-
+                    clearstatcache(true, $fullPath);
+                    $contents = fread($handle, $this->getSize($path) ?: 1);
                     flock($handle, LOCK_UN);
                 }
             } finally {

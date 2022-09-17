@@ -33,9 +33,9 @@ interface AdapterInterface
      * @param string $directory The directory to list.
      * @param bool   $recursive Whether to list recursively.
      *
-     * @return array A list of file metadata.
+     * @return array|false A list of file metadata.
      */
-    public function listContents(string $directory = '', bool $recursive = false);
+    public function listContents(string $directory = '', bool $recursive = false): array|false;
 
     /**
      * Get a file's metadata.
@@ -43,10 +43,9 @@ interface AdapterInterface
      * @param string $path The path to the file.
      *
      * @return array|false The file metadata or false on failure.
-     * @throws NotExistsException
      *
      */
-    public function getMetadata(string $path);
+    public function getMetadata(string $path): array|false;
 
     /**
      * Get a file's size.
@@ -54,10 +53,9 @@ interface AdapterInterface
      * @param string $path The path to the file.
      *
      * @return int|false The file size or false on failure.
-     * @throws NotExistsException
      *
      */
-    public function getSize($path);
+    public function getSize(string $path):int|false;
 
     /**
      * Get a file's mime-type.
@@ -65,10 +63,9 @@ interface AdapterInterface
      * @param string $path The path to the file.
      *
      * @return string|false The file mime-type or false on failure.
-     * @throws NotExistsException
      *
      */
-    public function getMimetype($path);
+    public function getMimetype(string $path):string|false;
 
     /**
      * Get a file's timestamp.
@@ -76,10 +73,10 @@ interface AdapterInterface
      * @param string $path The path to the file.
      *
      * @return string|false The timestamp or false on failure.
-     * @throws NotExistsException
+
      *
      */
-    public function getTimestamp($path);
+    public function getTimestamp(string $path):int|false;
 
 
     /**
@@ -92,7 +89,6 @@ interface AdapterInterface
      *                         ['flags'] = FILE_USE_INCLUDE_PATH|FILE_APPEND|LOCK_EX
      *
      * @return bool True on success, false on failure.
-     * @throws NotExistsException
      *
      */
     public function write(string $path, string $contents, array $options = []): bool;
@@ -109,19 +105,20 @@ interface AdapterInterface
      *
      * @throws ExistsException   Thrown if $newpath exists.
      */
-    public function rename(string $path, string $newPath);
+    public function rename(string $path, string $newPath):bool;
 
     /**
      * Copy a file.
      *
-     * @param string $path    Path to the existing file.
-     * @param string $to The new path of the file.
+     * @param string $path Path to the existing file.
+     * @param string $to   The new path of the file.
      *
      * @return bool True on success, false on failure.
+     *
      * @throws NotExistsException Thrown if $path does not exist.
      *
      */
-    public function copy(string $path, string $to):bool;
+    public function copy(string $path, string $to): bool;
 
     /**
      * Delete a file.
@@ -129,10 +126,9 @@ interface AdapterInterface
      * @param string $path
      *
      * @return bool True on success, false on failure.
-     * @throws NotExistsException
      *
      */
-    public function delete(string $path):bool;
+    public function delete(string $path): bool;
 
 
     /**
@@ -141,10 +137,9 @@ interface AdapterInterface
      * @param string $path
      *
      * @return bool True on success, false on failure.
-     * @throws NotExistsException
      *
      */
-    public function deleteDir(string $path):bool;
+    public function deleteDir(string $path): bool;
 
     /**
      * Create a directory.
@@ -154,7 +149,7 @@ interface AdapterInterface
      *
      * @return bool True on success, false on failure.
      */
-    public function createDir(string $dirname, array $options = []):bool;
+    public function createDir(string $dirname, array $options = []): bool;
 
     /**
      * Set the visibility for a file.
@@ -166,7 +161,7 @@ interface AdapterInterface
      * @throws NotExistsException
      *
      */
-    public function setVisibility(string $path, string $visibility):bool;
+    public function setVisibility(string $path, string $visibility): bool;
 
     /**
      * Get a file's visibility.
@@ -174,10 +169,10 @@ interface AdapterInterface
      * @param string $path The path to the file.
      *
      * @return string|false The visibility (public|private) or false on failure.
-     * @throws NotExistsException
+     * @throws FilesystemException
      *
      */
-    public function getVisibility(string $path):string|false;
+    public function getVisibility(string $path): string|false;
 
     /**
      * Create a file or update if exists.

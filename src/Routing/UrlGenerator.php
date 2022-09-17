@@ -181,7 +181,7 @@ class UrlGenerator implements UrlGeneratorInterface
     protected function preparePath(string $path): string
     {
         if (is_array(($sc = Str::sc($path)))) {
-            $path = $sc[0] . '/' . $sc[1];
+            $path = $sc[0] . '/' . ltrim($sc[1], '/');
         }
         return ltrim($path, '/');
     }

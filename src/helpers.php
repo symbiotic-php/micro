@@ -28,19 +28,44 @@ use Symbiotic\View\ViewFactory;
 
 
 const DS = DIRECTORY_SEPARATOR;
+if (!function_exists('_S\\core')) {
+    /**
+     *
+     * @param string|null $abstract
+     * @param array|null  $parameters
+     *
+     * @return mixed|\Symbiotic\Core\Core
+     *
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws \Symbiotic\Container\BindingResolutionException
+     */
+    function core(string $abstract = null, array $parameters = null)
+    {
+        if (is_console()) {
+            throw new \Exception('Static kernel access is not available in CLI mode!');
+        }
+        $core = \Symbiotic\Core\Core::getInstance();
+        if (is_null($abstract)) {
+            return $core;
+        }
+        return is_null($parameters) ? $core->get($abstract) : $core->make($abstract, $parameters);
+    }
+}
 
 if (!function_exists('_S\\app')) {
     /**
      * Возвращает контейнер приложения без инициализации
      * для инициализации используйте метод  {@uses \Symbiotic\Apps\ApplicationInterface::bootstrap()}
      *
-     * @param string $id
+     * @param string                           $id
+     * @param CoreInterface|ContainerInterface $app
      *
      * @return ApplicationInterface|null
      * @throws \Psr\Container\ContainerExceptionInterface Если нет сервиса приложений
      */
-    function app(ContainerInterface $app, string $id): ?ApplicationInterface
+    function app(string $id, ContainerInterface $app = null): ?ApplicationInterface
     {
+        $app = $app ?? \_S\core();
         $apps = $app->get(AppsRepositoryInterface::class);
         return $apps->has($id) ? $apps->get($id) : null;
     }
@@ -237,6 +262,19 @@ if (!function_exists('_S\\asset')) {
     function asset(ContainerInterface $app, string $path = '', bool $absolute = true)
     {
         return $app->get(UrlGeneratorInterface::class)->asset($path, $absolute);
+    }
+}
+
+if (!function_exists('_S\\is_console')) {
+    /**
+     * Define CLI mode
+     * @return bool
+     */
+    function is_console(): bool
+    {
+        $console_running_key = 'APP_RUNNING_IN_CONSOLE';
+        return (isset($_ENV[$console_running_key]) && $_ENV[$console_running_key] === 'true') ||
+            \in_array(\php_sapi_name(), ['cli', 'phpdbg']);
     }
 }
 

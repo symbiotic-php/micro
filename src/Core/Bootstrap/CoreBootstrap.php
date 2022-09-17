@@ -12,6 +12,8 @@ use Symbiotic\Core\Events\CacheClear;
 use Symbiotic\View\ViewFactory;
 use Symbiotic\Packages\TemplatesRepositoryInterface;
 
+use function _S\is_console;
+
 
 class CoreBootstrap implements BootstrapInterface
 {
@@ -37,9 +39,7 @@ class CoreBootstrap implements BootstrapInterface
             return new ViewFactory($app, $app[TemplatesRepositoryInterface::class]);
         },               'view');
         // Env settings
-        $console_running_key = 'APP_RUNNING_IN_CONSOLE';
-        if ((isset($_ENV[$console_running_key]) && $_ENV[$console_running_key] === 'true') ||
-            \in_array(\php_sapi_name(), ['cli', 'phpdbg'])) {
+        if (is_console()) {
             $core['env'] = 'console';
         } else {
             $core['env'] = 'web';

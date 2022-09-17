@@ -9,9 +9,9 @@ use Symbiotic\Container\DIContainerInterface;
 use Symbiotic\Core\BootstrapInterface;
 use Symbiotic\Core\Config;
 use Symbiotic\Core\CoreInterface;
+use Symbiotic\Filesystem\FilesystemException;
 use Symbiotic\Filesystem\FilesystemManagerInterface;
 
-use function _S\collect;
 use function _S\settings;
 
 class SettingsBootstrap implements BootstrapInterface
@@ -68,27 +68,42 @@ class SettingsBootstrap implements BootstrapInterface
         $config = $core['config'];
         if ($core[SettingsRepositoryInterface::class]->has('core')) {
             /**
-             * @var SettingsInterface $core_settings
+             * @var Settings $core_settings
              * @var Config            $config
              */
-            $core_settings = collect($core[SettingsRepositoryInterface::class]->get('core'));
+            $core_settings = new Settings($core[SettingsRepositoryInterface::class]->get('core')??[]);
 
-            if ($core_settings->has('uri_prefix')) {
+            /**
+             * The base address prefix can be empty
+             */
+            if (isset($core_settings['uri_prefix'])) {
                 $config->set('uri_prefix', $core_settings['uri_prefix']);
             }
+            /**
+             * String settings in the config
+             */
             foreach (['default_host', 'backend_prefix', 'assets_prefix'] as $v) {
                 if (!empty($core_settings[$v])) {
                     $config->set($v, $core_settings[$v]);
                 }
             }
 
+            /**
+             * Boolean settings in config
+             */
             foreach (['debug', 'packages_settlements', 'symbiosis'] as $v) {
-                if ($core_settings->has($v)) {
+                if (isset($core_settings[$v])) {
                     $config->set($v, (bool)$core_settings[$v]);
                 }
             }
 
-            $core->instance(SettingsInterface::class, $core[SettingsRepositoryInterface::class]->get('core'));
+            /**
+             * Adding file storage from the settings
+             * Binds names: assets_filesystem, media_filesystem, images_filesystem
+             */
+            $this->bindSettingsFilesystems($core, $core_settings);
+
+            $core->instance(SettingsInterface::class, $core_settings);
         }
 
 
@@ -113,6 +128,45 @@ class SettingsBootstrap implements BootstrapInterface
                         $config->set('filesystems', $filesystems);
                     }
                 );
+            }
+        }
+    }
+
+    /**
+     * Dynamic addition of file storages from settings
+     *
+     * @param DIContainerInterface $core
+     * @param SettingsInterface    $settings
+     *
+     * assets_filesystem  - File storage for public application files (js, css, fonts, csv etc...)
+     * media_filesystem   - Basic storage for media files (images, video, audio, etc...)
+     * images_filesystem  - The storage for images is usually located inside the media folder.
+     *                      Used by visual content editors.
+     *
+     * @info  The storages themselves are selected in the settings -> system application
+     *
+     * @return void
+     */
+    private function bindSettingsFilesystems(DIContainerInterface $core, SettingsInterface $settings): void
+    {
+        foreach (['assets', 'media', 'images'] as $filesystemName) {
+            $key = $filesystemName . '_filesystem';
+            if ($settings->has($key)) {
+                $core->singleton($key, static function (CoreInterface $core) use ($filesystemName, $key) {
+                    $disk = $core->get(SettingsInterface::class)->get($key);
+                    if (empty($disk)) {
+                        throw new FilesystemException(
+                            'Kernel ' . ucfirst($filesystemName) . ' filesystem is not defined in settings!'
+                        );
+                    }
+                    $filesystem = $core->get(FilesystemManagerInterface::class)->disk($disk);
+                    if (!$filesystem) {
+                        throw new FilesystemException(
+                            'Kernel ' . ucfirst($filesystemName) . ' filesystem storage is not found!'
+                        );
+                    }
+                    return $filesystem;
+                });
             }
         }
     }

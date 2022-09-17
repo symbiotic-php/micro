@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Symbiotic\Filesystem;
@@ -26,21 +27,23 @@ class Filesystem implements FilesystemInterface
     /**
      * @inheritdoc
      */
-    public function has($path)
+    public function has(string $path): bool
     {
         $path = self::normalizePath($path);
 
-        return strlen($path) === 0 ? false : (bool)$this->getAdapter()->has($path);
+        return !(strlen($path) === 0) && $this->getAdapter()->has($path);
     }
 
-    public static function normalizePath($path)
+    public static function normalizePath(string $path): string
     {
         $path = rtrim(str_replace("\\", "/", trim($path)), '/');
         $unx = (strlen($path) > 0 && $path[0] == '/');
         $parts = array_filter(explode('/', $path));
         $absolutes = [];
         foreach ($parts as $part) {
-            if ('.' === $part) continue;
+            if ('.' === $part) {
+                continue;
+            }
             if ('..' === $part) {
                 array_pop($absolutes);
             } else {
@@ -48,9 +51,7 @@ class Filesystem implements FilesystemInterface
             }
         }
         $path = implode('/', $absolutes);
-        $path = $unx ? '/' . $path : $path;
-
-        return $path;
+        return $unx ? '/' . $path : $path;
     }
 
     /**
@@ -68,13 +69,16 @@ class Filesystem implements FilesystemInterface
      */
     public function write(string $path, $contents, array $options = []): bool
     {
-        return (bool)$this->getAdapter()->write(self::normalizePath($path), $contents, $options);
+        return $this->getAdapter()->write(self::normalizePath($path), $contents, $options);
     }
 
     /**
-     * @inheritdoc
+     * @param string $path
+     *
+     * @return string|false
+     * @throws \Exception
      */
-    public function readAndDelete($path): bool|string
+    public function readAndDelete(string $path): string|false
     {
         $path = self::normalizePath($path);
         $contents = $this->read($path);
@@ -93,7 +97,7 @@ class Filesystem implements FilesystemInterface
     /**
      * @inheritdoc
      */
-    public function read($path)
+    public function read(string $path): string|false
     {
         return $this->getAdapter()->read(self::normalizePath($path));
     }
@@ -101,7 +105,7 @@ class Filesystem implements FilesystemInterface
     /**
      * @inheritdoc
      */
-    public function delete($path)
+    public function delete(string $path): bool
     {
         return $this->getAdapter()->delete(self::normalizePath($path));
     }
@@ -109,54 +113,53 @@ class Filesystem implements FilesystemInterface
     /**
      * @inheritdoc
      */
-    public function rename($path, $newPath): bool
+    public function rename(string $path, string $newPath): bool
     {
-        return (bool)$this->getAdapter()->rename(self::normalizePath($path), self::normalizePath($newPath));
+        return $this->getAdapter()->rename(self::normalizePath($path), self::normalizePath($newPath));
     }
 
     /**
      * @inheritdoc
      */
-    public function copy($path, $newpath)
+    public function copy(string $path, string $to): bool
     {
-        return $this->getAdapter()->copy(self::normalizePath($path), self::normalizePath($newpath));
+        return $this->getAdapter()->copy(self::normalizePath($path), self::normalizePath($to));
     }
 
     /**
      * @inheritdoc
      */
-    public function deleteDir($dirname)
+    public function deleteDir(string $path): bool
     {
-        $dirname = self::normalizePath($dirname);
+        $dirname = self::normalizePath($path);
 
         if ($dirname === '') {
             throw new FilesystemException('Root directories can not be deleted.');
         }
 
-        return (bool)$this->getAdapter()->deleteDir($dirname);
+        return $this->getAdapter()->deleteDir($dirname);
     }
 
     /**
      * @inheritdoc
      */
-    public function createDir($dirname, array $config = [])
+    public function createDir(string $dirname, array $options = []): bool
     {
-        return (bool)$this->getAdapter()->createDir(self::normalizePath($dirname), $config);
+        return $this->getAdapter()->createDir(self::normalizePath($dirname), $options);
     }
 
     /**
      * @inheritdoc
      */
-    public function listContents($directory = '', $recursive = false)
+    public function listContents(string $directory = '', bool $recursive = false): array|false
     {
-
         return $this->getAdapter()->listContents(self::normalizePath($directory), $recursive);
     }
 
     /**
      * @inheritdoc
      */
-    public function getMimetype($path)
+    public function getMimetype(string $path): string|false
     {
         return $this->getAdapter()->getMimetype(self::normalizePath($path));
     }
@@ -164,7 +167,7 @@ class Filesystem implements FilesystemInterface
     /**
      * @inheritdoc
      */
-    public function getTimestamp($path)
+    public function getTimestamp(string $path): int|false
     {
         return $this->getAdapter()->getTimestamp(self::normalizePath($path));
     }
@@ -172,50 +175,32 @@ class Filesystem implements FilesystemInterface
     /**
      * @inheritdoc
      */
-    public function getVisibility($path)
+    public function getVisibility(string $path): string|false
     {
-        $path = Util::normalizePath($path);
-        $this->assertPresent($path);
-
-        if ((!$object = $this->getAdapter()->getVisibility($path)) || !array_key_exists('visibility', $object)) {
-            return false;
-        }
-
-        return $object['visibility'];
+        return $this->getAdapter()->getVisibility($path);
     }
 
     /**
      * @inheritdoc
      */
-    public function getSize($path)
+    public function getSize(string $path): int|false
     {
-        $path = Util::normalizePath($path);
-        $this->assertPresent($path);
-
-        if ((!$object = $this->getAdapter()->getSize($path)) || !array_key_exists('size', $object)) {
-            return false;
-        }
-
-        return (int)$object['size'];
+        return $this->getAdapter()->getSize($path);
     }
 
     /**
      * @inheritdoc
      */
-    public function setVisibility($path, $visibility)
+    public function setVisibility(string $path, string $visibility): bool
     {
-        $path = Util::normalizePath($path);
-        $this->assertPresent($path);
-
-        return (bool)$this->getAdapter()->setVisibility($path, $visibility);
+        return $this->getAdapter()->setVisibility($path, $visibility);
     }
 
     /**
      * @inheritdoc
      */
-    public function getMetadata($path)
+    public function getMetadata(string $path): array|false
     {
-        $path = Util::normalizePath($path);
         return $this->getAdapter()->getMetadata($path);
     }
 }

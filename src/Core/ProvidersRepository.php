@@ -95,10 +95,12 @@ class ProvidersRepository
     public function load(ServiceContainerInterface $app, array $force_providers = [], array $force_exclude = []): void
     {
         if (!$this->loaded) {
-            foreach ($app[PackagesRepositoryInterface::class]->all() as $config) {
-                $this->add(isset($config['providers']) ? (array)$config['providers'] : []);
-                $this->defer(isset($config['defer']) ? (array)$config['defer'] : []);
-                $this->exclude(isset($config['providers_exclude']) ? (array)$config['providers_exclude'] : []);
+            if($app->has(PackagesRepositoryInterface::class)) {
+                foreach ($app[PackagesRepositoryInterface::class]->all() as $config) {
+                    $this->add(isset($config['providers']) ? (array)$config['providers'] : []);
+                    $this->defer(isset($config['defer']) ? (array)$config['defer'] : []);
+                    $this->exclude(isset($config['providers_exclude']) ? (array)$config['providers_exclude'] : []);
+                }
             }
         }
 

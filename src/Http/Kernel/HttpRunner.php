@@ -7,6 +7,8 @@ use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 use Symbiotic\Core\{HttpKernelInterface, Runner};
 use Symbiotic\Http\{PsrHttpFactory, ResponseSender, UriHelper};
 
+use function _S\is_console;
+
 
 class HttpRunner extends Runner
 {
@@ -95,7 +97,7 @@ class HttpRunner extends Runner
         $server = $request->getServerParams();
         $baseUrl = '/';
         $app = $this->core;
-        if (PHP_SAPI !== 'cli') {
+        if (!is_console()) {
             foreach (['PHP_SELF', 'SCRIPT_NAME', 'ORIG_SCRIPT_NAME'] as $v) {
                 $value = $server[$v];
 
@@ -132,7 +134,7 @@ class HttpRunner extends Runner
             \register_shutdown_function(function () {
                 \fastcgi_finish_request();
             });
-        } elseif (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true)) {
+        } elseif (!is_console()) {
             static::closeOutputBuffers(0, true);
         }
     }
