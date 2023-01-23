@@ -57,7 +57,7 @@ class AppConfig implements AppConfigInterface
     public function getBasePath(string $path = null): ?string
     {
         $base = $this->get('base_path');
-        return is_string($base) ? ($path ? $base . \_S\DS . ltrim($path) : $base) : null;
+        return is_string($base) ? ($path ? rtrim($base,'\\/') . \_S\DS . ltrim($path,'\\/') : $base) : null;
     }
 
     /**

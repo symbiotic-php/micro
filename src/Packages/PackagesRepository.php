@@ -63,9 +63,8 @@ class PackagesRepository implements PackagesRepositoryInterface
         if (is_array($app)) {
             // todo: something is too complicated!!!
             if (!isset($app['id']) && isset($config['id'])) {
-                $app['id'] = self::normalizeId($config['id']);
-            }
-            if (isset($app['id'])) {
+                $app['id'] = $config['id'];
+            } elseif(isset($app['id'])) {
                 $config['id'] = $app['id'] = self::getAppId($app);
             }
             $config['app'] = $app;

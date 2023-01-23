@@ -225,6 +225,18 @@ class View implements RenderableInterface
     }
 
     /**
+     * @param string $appId
+     *
+     * @return bool
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
+    public function hasApp(string $appId):bool
+    {
+        return $this->container->get(AppsRepositoryInterface::class)->has($appId);
+    }
+
+    /**
      * @param string|null $abstract
      * @param array       $parameters
      *

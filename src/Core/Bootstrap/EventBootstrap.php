@@ -25,7 +25,11 @@ class EventBootstrap implements BootstrapInterface
             ->alias($listener_interface, ListenersInterface::class);
 
         // Events dispatcher
-        $core->live(EventDispatcherInterface::class, EventDispatcher::class, 'events');
+        $core->live(EventDispatcherInterface::class, static function($app) {
+            return new EventDispatcher(
+                $app->get(ListenerProviderInterface::class)
+            );
+            }, 'events');
     }
 
     public static function getListenerWrapper(DIContainerInterface $app)

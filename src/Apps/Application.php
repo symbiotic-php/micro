@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Symbiotic\Apps;
 
-use Symbiotic\Container\{CloningContainer, DIContainerInterface, ServiceContainerTrait, SubContainerTrait};
+use Symbiotic\Container\{DIContainerInterface, ServiceContainerTrait, SubContainerTrait};
 use Psr\Container\ContainerInterface;
 use Symbiotic\Packages\AssetsRepositoryInterface;
 use Symbiotic\Packages\ResourcesRepositoryInterface;
@@ -88,6 +88,7 @@ class Application implements ApplicationInterface
         }
 
         $this->booted = true;
+
         return $this;
     }
 
@@ -219,14 +220,14 @@ class Application implements ApplicationInterface
         /**
          * Before the first cloning, we load all the single services
          */
-        $cloned_key = '__cloned_'.$this->getId();
-        if(!$this->has($cloned_key)) {
+        $cloned_key = '__cloned_' . $this->getId();
+        if (!$this->has($cloned_key)) {
             foreach ($this->getBindings() as $abstract => $bind) {
                 if ($bind['shared'] === true) {
                     $this->resolve($abstract);
                 }
             }
-            $this->instance($cloned_key,true);
+            $this->instance($cloned_key, true);
         }
 
         /**
@@ -235,6 +236,7 @@ class Application implements ApplicationInterface
         $this->clearLive();
 
         $new = clone $this;
+        $new->dependencyInjectionContainer = $new;
 
         /**
          * Update parent container

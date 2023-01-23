@@ -80,34 +80,6 @@ trait ContainerTrait  /* implements DIContainerInterface */
      */
     protected array $reboundCallbacks = [];
 
-    /**
-     * All of the global resolving callbacks.
-     *
-     * @var Closure[]
-     */
-    protected array $globalResolvingCallbacks = [];
-
-    /**
-     * All of the global after resolving callbacks.
-     *
-     * @var Closure[]
-     */
-    protected array $globalAfterResolvingCallbacks = [];
-
-    /**
-     * All of the resolving callbacks by class type.
-     *
-     * @var array[]
-     */
-    protected array $resolvingCallbacks = [];
-
-    /**
-     * All of the after resolving callbacks by class type.
-     *
-     * @var array[]
-     */
-    protected array $afterResolvingCallbacks = [];
-
 
     /**
      * @var DIContainerInterface[]
@@ -156,6 +128,12 @@ trait ContainerTrait  /* implements DIContainerInterface */
         return isset($this->aliases[$name]);
     }
 
+    /**
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return void
+     */
     public function set(string $key, mixed $value): void
     {
         $this->bind(
@@ -440,7 +418,7 @@ trait ContainerTrait  /* implements DIContainerInterface */
     public function build(string|Closure $concrete, array $params = null): mixed
     {
         if (null !== $params) {
-            $this->with = $params;
+            $this->with[] = $params;
         }
         // If the concrete type is actually a Closure, we will just execute it and
         // hand back the results of the functions, which allows functions to be
@@ -667,78 +645,6 @@ trait ContainerTrait  /* implements DIContainerInterface */
             || ($this->bindings[$abstract]['shared'] ?? false) === true;
     }
 
-    /**
-     * Fire all of the resolving callbacks.
-     *
-     * @param string $abstract
-     * @param mixed  $object
-     *
-     * @return void
-     */
-    protected function fireResolvingCallbacks(string $abstract, mixed $object): void
-    {
-        $this->fireResolvingByData($abstract, $object, $this->globalResolvingCallbacks, $this->resolvingCallbacks);
-        $this->fireResolvingByData(
-            $abstract,
-            $object,
-            $this->globalAfterResolvingCallbacks,
-            $this->afterResolvingCallbacks
-        );
-    }
-
-    protected function fireResolvingByData(
-        string $abstract,
-        $object,
-        array $global_callbacks = [],
-        array $types_callbacks = []
-    ): void {
-        if (!empty($global_callbacks)) {
-            $this->fireCallbackArray($object, $global_callbacks);
-        }
-
-        $callbacks = $this->getCallbacksForType($abstract, $object, $types_callbacks);
-        if (!empty($callbacks)) {
-            $this->fireCallbackArray($object, $callbacks);
-        }
-    }
-
-    /**
-     * Fire an array of callbacks with an object.
-     *
-     * @param mixed $object
-     * @param array $callbacks
-     *
-     * @return void
-     */
-    protected function fireCallbackArray(mixed $object, array $callbacks): void
-    {
-        foreach ($callbacks as $callback) {
-            $callback($object, $this);
-        }
-    }
-
-    /**
-     * Get all callbacks for a given type.
-     *
-     * @param string $abstract
-     * @param mixed  $value
-     * @param array  $callbacksPerType
-     *
-     * @return array
-     */
-    protected function getCallbacksForType(string $abstract, mixed $value, array $callbacksPerType): array
-    {
-        $results = [];
-
-        foreach ($callbacksPerType as $type => $callbacks) {
-            if ($type === $abstract || $value instanceof $type) {
-                $results = array_merge($results, $callbacks);
-            }
-        }
-
-        return $results;
-    }
-
     public function delete(string|int $key): bool
     {
         unset($this->bindings[$key], $this->instances[$key], $this->resolved[$key]);
@@ -950,49 +856,6 @@ trait ContainerTrait  /* implements DIContainerInterface */
     {
         array_pop($this->containersStack);
     }
-
-    /**
-     * Register a new resolving callback.
-     *
-     * @param Closure|string $abstract
-     * @param callable|null  $callback closure or Invokable object
-     *
-     * @return void
-     */
-    public function resolving(string|Closure $abstract, callable $callback = null): void
-    {
-        if (is_string($abstract)) {
-            $abstract = $this->getAlias($abstract);
-        }
-
-        if (is_null($callback) && is_callable($abstract)) {
-            $this->globalResolvingCallbacks[] = $abstract;
-        } else {
-            $this->resolvingCallbacks[$abstract][] = $callback;
-        }
-    }
-
-    /**
-     * Register a new after resolving callback for all types.
-     *
-     * @param Closure|string $abstract
-     * @param callable|null  $callback closure or Invokable object
-     *
-     * @return void
-     */
-    public function afterResolving(Closure|string $abstract, callable $callback = null): void
-    {
-        if (is_string($abstract)) {
-            $abstract = $this->getAlias($abstract);
-        }
-
-        if (is_callable($abstract) && is_null($callback)) {
-            $this->globalAfterResolvingCallbacks[] = $abstract;
-        } else {
-            $this->afterResolvingCallbacks[$abstract][] = $callback;
-        }
-    }
-
 
     /**
      * Remove all of the extender callbacks for a given type.

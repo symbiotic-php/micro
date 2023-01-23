@@ -105,6 +105,11 @@ trait SubContainerTrait /*  implements DIContainerInterface, ContextualBindingsI
             || $this->app->has($this->getAlias($key));
     }
 
+    /**
+     * @param string $abstract
+     *
+     * @return string
+     */
     public function getAlias(string $abstract): string
     {
         if (!isset($this->aliases[$abstract])) {
@@ -156,6 +161,7 @@ trait SubContainerTrait /*  implements DIContainerInterface, ContextualBindingsI
                     foreach ($this->getExtenders($abstract) as $v) {
                         $instance = $v($instance);
                     }
+                    $this->fireResolvingCallbacks($abstract,$instance);
                 } else {
                     if ($abstract === $concrete) {
                         if (empty($parameters) && isset($this->instances[$abstract])) {
@@ -164,6 +170,7 @@ trait SubContainerTrait /*  implements DIContainerInterface, ContextualBindingsI
                         $container->setContainersStack($this);
                         $instance = $container->build($concrete, empty($parameters) ? null : $parameters);
                         $container->popCurrentContainer();
+                        $this->fireResolvingCallbacks($abstract, $instance);
                     } else {
                         $instance = $this->app->resolve(
                             $concrete,
@@ -250,7 +257,7 @@ trait SubContainerTrait /*  implements DIContainerInterface, ContextualBindingsI
             return $this->instances[$abstract];
         }
         if (isset($this->bindings[$abstract])) {
-            return $this->app->build($this->bindings[$abstract]['concrete']);
+            return $this->app->build($this->bindings[$abstract]['concrete'], $parameters);
         }
         // передаем родителю
         if (!$parameters && isset($this->instances[$alias])) {
@@ -303,6 +310,7 @@ trait SubContainerTrait /*  implements DIContainerInterface, ContextualBindingsI
 
     /**
      * @param string|Closure $concrete
+     * @param array|null     $params
      *
      * @return mixed
      */
@@ -476,54 +484,6 @@ trait SubContainerTrait /*  implements DIContainerInterface, ContextualBindingsI
         $this->bindings = [];
         $this->instances = [];
         $this->abstractAliases = [];
-    }
-
-    /**
-     * @param               $abstract
-     * @param callable|null $callback
-     *
-     * @return void
-     */
-    public function resolving($abstract, callable $callback = null): void
-    {
-        if (is_string($abstract)) {
-            $abstract = $this->getAlias($abstract);
-        }
-        // we don't need someone else's container, we put the current one
-        $this->app->resolving(
-            $abstract,
-            function (object $object, $app) use ($callback) {
-                return $callback($object, $this);
-            }
-        );
-    }
-
-    /**
-     * Register a new after resolving callback for all types.
-     *
-     * @param string|Closure $abstract global subscriptions are not available in the child container
-     * @param callable|null  $callback
-     *
-     * @return void
-     */
-    public function afterResolving(string|Closure $abstract, callable $callback = null): void
-    {
-        if (is_string($abstract)) {
-            $abstract = $this->getAlias($abstract);
-            // we don't need someone else's container, we put the current one
-            $this->app->afterResolving(
-                $abstract,
-                function (object $object, $app) use ($callback) {
-                    return $callback($object, $this);
-                }
-            );
-        } else {
-            $this->app->afterResolving(
-                function (object $object, $app) use ($abstract) {
-                    return $abstract($object, $this);
-                }
-            );
-        }
     }
 
     /**
