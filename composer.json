@@ -1,6 +1,7 @@
 {
   "name": "symbiotic/micro",
   "description": "SymbioticPHP framework for mini applications, supports plugins and inheritance of containers of parent applications.",
+  "license": ["BSD-3-Clause"],
   "homepage": "https://symbioticphp.com",
   "authors": [
     {
@@ -8,7 +9,7 @@
       "role": "Developer"
     }
   ],
-  "version": "1.4.1.3",
+  "version": "1.4.1.4",
   "type": "library",
   "keywords": [
     "SymbioticPHP",
@@ -32,7 +33,7 @@
   },
 
   "require-dev": {
-    "symbiotic/tests-micro": "1.4.0"
+    "symbiotic/tests-micro": "1.4.1"
   },
   "autoload": {
     "psr-4": {
@@ -41,6 +42,10 @@
     "files": ["src/helpers.php"]
   },
   "suggest": {
-    "symbiotic/full": "Extended version of the framework"
+    "symbiotic/full": "Full version of the framework",
+    "symbiotic/eloquent": "Encapsulated Laravel Eloquent ORM for Symbiotic",
+    "symbiotic/develop": "App for developers",
+    "symbiotic/auth-login": "Basic authorization for the framework",
+    "symbiotic/settings-app": "Application for editing kernel settings, file systems and application packages"
   }
 }

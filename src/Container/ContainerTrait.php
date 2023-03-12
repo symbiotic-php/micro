@@ -460,7 +460,7 @@ trait ContainerTrait  /* implements DIContainerInterface */
         // resolving any other types or dependencies out of these containers.
         if (null === $constructor) {
             array_pop($this->buildStack);
-            array_pop($this->with);
+            if (null !== $params) {array_pop($this->with);}
             $this->current_build = end($this->buildStack);
             return new $concrete;
         }
@@ -475,7 +475,10 @@ trait ContainerTrait  /* implements DIContainerInterface */
         );
 
         array_pop($this->buildStack);
-        array_pop($this->with);
+        if (null !== $params) {
+            array_pop($this->with);
+        }
+
         $this->current_build = end($this->buildStack);
         return $reflector->newInstanceArgs($instances);
     }

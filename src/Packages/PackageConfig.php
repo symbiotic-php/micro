@@ -23,7 +23,9 @@ class PackageConfig implements ArrayContainerInterface
      *     // or
      *    'settings' => [
      *         ['field_name' => 'name', 'type' => 1 ], // {@see \Symbiotic\Form\FormInterface}
-     *     ]
+     *     ],
+     *     'base_path' => '/dir',
+     *     'namespaces' => [] // from autoload psr-4
      *     ....
      * ]
      */

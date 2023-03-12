@@ -28,6 +28,9 @@ class SessionManager implements SessionManagerInterface
         if (!isset($this->config['minutes'])) {
             $this->config['minutes'] = 60 * 24;
         }
+        if(!isset($this->config['namespace']) && $container->get('config')->get('symbiosis')) {
+            $this->config['namespace'] = '5a8309dedb810d2322b6024d536832ba';
+        }
         $this->drivers = [
             'native' => [$this, 'createNativeDriver']
         ];
