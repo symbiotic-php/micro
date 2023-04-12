@@ -52,6 +52,10 @@ trait ArrayStorageTrait
         if (!\file_put_contents($path, '<?php ' . PHP_EOL . 'return ' . var_export($data, true) . ';')) {
             throw new FilesystemException('Не удалось записать в файл[' . $path . ']!');
         }
+        \clearstatcache(true, $path);
+        if(\function_exists('opcache_invalidate')) {
+            \opcache_invalidate($path, true);
+        }
 
         return $data;
     }

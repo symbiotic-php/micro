@@ -6,6 +6,7 @@ namespace Symbiotic\Http\Kernel;
 
 use Symbiotic\Core\CoreInterface;
 use Symbiotic\Core\HttpKernelInterface;
+use Symbiotic\Routing\UrlGeneratorInterface;
 use Symbiotic\View\ViewFactory;
 use Symbiotic\Http\Middleware\MiddlewareCallback;
 use Symbiotic\Http\Middleware\MiddlewaresCollection;
@@ -93,6 +94,13 @@ class HttpKernel implements HttpKernelInterface
                             $real->bootstrap();
                         }
                     }
+                    /**
+                     * @todo: refactor
+                     * @var UrlGeneratorInterface $generator
+                     */
+                    $generator =  $core->get(UrlGeneratorInterface::class);
+                    $generator->setBaseDomain($request->getUri()->getHost());
+                    $generator->setSecure($request->getUri()->getScheme() === 'https');
 
                     return (new MiddlewaresCollection(
                         $core->get(MiddlewaresDispatcher::class)

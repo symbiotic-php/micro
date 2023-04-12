@@ -51,6 +51,16 @@ class UrlGenerator implements UrlGeneratorInterface
     protected string $assets_path;
 
     /**
+     * @var string
+     */
+    protected string $base_domain = 'localhost';
+
+    /**
+     * @var bool
+     */
+    protected bool $secure = true;
+
+    /**
      * @var RouterInterface
      */
     protected RouterInterface $router;
@@ -77,7 +87,27 @@ class UrlGenerator implements UrlGeneratorInterface
      */
     public function asset(string $path = '', bool $absolute = true): string
     {
-        return $this->to($this->assets_path . '/' . $this->preparePath($path));
+        return $this->to($this->assets_path . '/' . $this->preparePath($path), $absolute);
+    }
+
+    /**
+     * @param bool $flag
+     *
+     * @return void
+     */
+    public function setSecure(bool $flag): void
+    {
+        $this->secure = $flag;
+    }
+
+    /**
+     * @param string $domain
+     *
+     * @return void
+     */
+    public function setBaseDomain(string $domain): void
+    {
+        $this->base_domain = $domain;
     }
 
     /**
@@ -89,7 +119,8 @@ class UrlGenerator implements UrlGeneratorInterface
     public function to(string $path = '', bool $absolute = true): string
     {
         // todo: add relative uri support
-        return $this->base_uri . '/' . $this->preparePath($path);
+        return ($absolute ? 'http' . ($this->secure ? 's' : '') . '://' . $this->base_domain : '')
+            . $this->base_uri . '/' . $this->preparePath($path);
     }
 
     /**

@@ -8,36 +8,36 @@ namespace Symbiotic\Container;
 /**
  * @uses \Symbiotic\Container\ArrayContainerInterface
  */
-trait ArrayAccessTrait /*implements \Symbiotic\Container\ArrayContainerInterface */
+trait ArrayAccessTrait /*implements \Symbiotic\Container\ArrayContainerInterface*/
 {
     /**
      * Get an item at a given offset.
      *
-     * @param mixed $key
+     * @param mixed $offset
      *
-     * @return mixed
+     * @return bool
      *
      * @uses \Symbiotic\Container\BaseContainerInterface::has()
      * @uses BaseContainerTrait::has()
      */
-    public function offsetExists($key)
+    public function offsetExists(mixed $offset): bool
     {
-        return $this->has($key);
+        return $this->has($offset);
     }
 
     /**
      * Get an item at a given offset.
      *
-     * @param mixed $key
+     * @param mixed $offset
      *
      * @return mixed
      *
      * @uses \Symbiotic\Container\BaseContainerInterface::get()
      * @uses BaseContainerTrait::get()
      */
-    public function offsetGet($key)
+    public function offsetGet(mixed $offset): mixed
     {
-        return $this->get($key);
+        return $this->get($offset);
     }
 
     /**
@@ -51,9 +51,9 @@ trait ArrayAccessTrait /*implements \Symbiotic\Container\ArrayContainerInterface
      * @uses \Symbiotic\Container\BaseContainerInterface::set()
      * @uses BaseContainerTrait::set()
      */
-    public function offsetSet($key, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
-        $this->set($key, $value);
+        $this->set($offset, $value);
     }
 
     /**
@@ -66,8 +66,8 @@ trait ArrayAccessTrait /*implements \Symbiotic\Container\ArrayContainerInterface
      * @uses \Symbiotic\Container\BaseContainerInterface::delete()
      * @uses BaseContainerTrait::delete()
      */
-    public function offsetUnset($key)
+    public function offsetUnset(mixed $offset): void
     {
-        $this->delete($key);
+        $this->delete($offset);
     }
 }

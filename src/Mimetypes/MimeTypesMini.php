@@ -25,6 +25,7 @@ class MimeTypesMini
         'php' => T . 'html',
         'css' => T . 'css',
         'js' => A . 'javascript',
+        'vue' => A . 'javascript',
         'json' => A . 'json',
         'jsonld' => A . 'ld+json',
         'xml' => A . 'xml',
