@@ -28,6 +28,7 @@ final class ViewException extends SymbioticException
     ): ViewException {
         $e = new ViewException($message, $code, $previous);
         $e->setTemplate($template);
+        return $e;
     }
 
     /**
