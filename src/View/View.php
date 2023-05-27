@@ -353,8 +353,11 @@ class View implements RenderableInterface
             try {
                eval($this->getTemplate());
             } catch (\Throwable|\Error $e) {
-                throw new ViewException(
-                    $e->getMessage() . PHP_EOL . \htmlspecialchars($this->template), $e->getCode(), $e
+                throw  ViewException::create(
+                    $this->template,
+                    $e->getMessage(),
+                    $e->getCode(),
+                    $e
                 );
             }
         }

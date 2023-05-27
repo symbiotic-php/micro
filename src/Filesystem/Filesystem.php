@@ -5,24 +5,15 @@ declare(strict_types=1);
 namespace Symbiotic\Filesystem;
 
 
-class Filesystem implements FilesystemInterface
+class Filesystem implements FilesystemInterface, CloudInterface
 {
 
 
     /**
-     * @var AdapterInterface
-     */
-    protected AdapterInterface $adapter;
-
-    /**
-     * Constructor.
-     *
      * @param AdapterInterface $adapter
+     * @param string|null      $baseUrl
      */
-    public function __construct(AdapterInterface $adapter)
-    {
-        $this->adapter = $adapter;
-    }
+    public function __construct(protected AdapterInterface $adapter, protected string|null $baseUrl = null) {}
 
     /**
      * @inheritdoc
@@ -36,7 +27,6 @@ class Filesystem implements FilesystemInterface
 
     public static function normalizePath(string $path): string
     {
-
         $path = rtrim(str_replace("\\", "/", trim($path)), '/');
         $unx = (strlen($path) > 0 && $path[0] == '/');
         $parts = array_filter(explode('/', $path));
@@ -204,5 +194,29 @@ class Filesystem implements FilesystemInterface
     public function getMetadata(string $path): array|false
     {
         return $this->getAdapter()->getMetadata($path);
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return string
+     * @throws FilesystemException
+     */
+    public function getUrl(string $path): string
+    {
+        if ($this->adapter instanceof CloudInterface) {
+            return $this->adapter->getUrl($path);
+        } elseif ($this->adapter instanceof PathPrefixInterface) {
+            if (empty($this->baseUrl)) {
+                throw new FilesystemException("The base url is not defined!");
+            }
+            $basePath = $this->adapter->getPathPrefix();
+            if (!empty($basePath)) {
+                $path = preg_replace('/^' . preg_quote($basePath) . '/', '', $path);
+            }
+            return rtrim($this->baseUrl, '\\/') . '/' . ltrim($path, '\\/');
+        }
+
+        throw new FilesystemException("I can't create a url for the [$path] file!");
     }
 }

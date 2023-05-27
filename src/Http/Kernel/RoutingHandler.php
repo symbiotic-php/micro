@@ -67,11 +67,13 @@ class RoutingHandler implements RequestHandlerInterface
 
             $middlewares = $route->getMiddlewares();
             $action = $route->getAction();
+            $application = $core;
             if (isset($action['app'])) {
-                $core[AppsRepositoryInterface::class]->getBootedApp($action['app']);
+               $application = $core[AppsRepositoryInterface::class]->getBootedApp($action['app']);
             }
             if (!empty($middlewares)) {
-                $middlewares = $core[MiddlewaresDispatcher::class]->factoryCollection($middlewares);
+                $middlewaresDispatcher = new MiddlewaresDispatcher($application);
+                $middlewares = $middlewaresDispatcher->factoryCollection($middlewares);
             } else {
                 $middlewares = [];
             }

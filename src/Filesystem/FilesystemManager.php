@@ -111,7 +111,12 @@ class FilesystemManager implements FilesystemManagerInterface
      */
     public function createLocalDriver(array $config)
     {
-        return new Local($config['root'] ?? $this->app->getBasePath(), LOCK_EX, $config['permissions'] ?? []);
+
+        $baseUrl = $config['url'] ?? null;
+        return new Filesystem(
+            new Local($config['root'] ?? $this->app->getBasePath(), LOCK_EX, $config['permissions'] ?? []),
+            $baseUrl
+        );
     }
 
 
