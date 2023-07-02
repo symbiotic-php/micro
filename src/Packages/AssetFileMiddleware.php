@@ -9,6 +9,8 @@ use Psr\Http\Server\{MiddlewareInterface, RequestHandlerInterface};
 use Symbiotic\Core\CoreInterface;
 use Symbiotic\Mimetypes\MimeTypesMini;
 
+use function _S\config;
+
 
 class AssetFileMiddleware implements MiddlewareInterface
 {
@@ -57,11 +59,16 @@ class AssetFileMiddleware implements MiddlewareInterface
                 if (!$mime) {
                     $mime = 'text/plain';
                 }
-                return $responseFactory->createResponse(200)
+                $response = $responseFactory->createResponse(200)
                     ->withBody($file)
                     ->withHeader('content-type', $mime)
-                    ->withHeader('Cache-Control', 'max-age=86400')
                     ->withHeader('content-length', $file->getSize());
+                if (!config($this->container, 'debug')) {
+                    $response = $response->withHeader('Cache-Control', 'max-age=86400');
+                } else {
+                    $response = $response->withHeader('Cache-Control', 'no-cache');
+                }
+                return $response;
             } catch (\Throwable $e) {
                 // if a file is requested, but it cannot be returned, we will return an error response
                 $this->container->instance('destroy_response', true);
